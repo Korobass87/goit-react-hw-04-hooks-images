@@ -28,6 +28,7 @@ export default function Modal({URL, closeModal}) {
   
     return ()=>{window.removeEventListener('keydown', handleKeyDown)} 
   
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
 

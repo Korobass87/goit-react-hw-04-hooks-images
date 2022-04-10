@@ -18,7 +18,7 @@ const Status = {
 export default function ImageGallery({imgName}) {
   
   
-    const [hits, setHits] = useState(null)    
+    const [hits, setHits] = useState([])    
     const [modalImg, setModalImg] = useState("")   
     const [error, setError] = useState(null)
     const [page, setPage] = useState(0)
@@ -37,90 +37,72 @@ export default function ImageGallery({imgName}) {
      
     }
 
-    
-
-function firstRender () {
-  setStatus(Status.LOADING)
-  setPage(1) 
-  setHits(null) 
-  setPrevImgName(imgName)
-}
-
 useEffect(() => {
-   
-  
+     
   if (imgName !== prevImgName) {
-    
-    
-      
-       firstRender()
-         
-       
-        API.FetchImg(imgName, 1)
-         .then(data=>{
-   
-           if (data.total>0 && data.total<=12) {
-             setHits(data.hits)
-              setError(null)
-             }
-           
-           if (data.total===0) {
-             setError(true) 
-             setHits(null)
-           }
-     
-           if (data.total>12) {
-           setMaxPage(Math.ceil(data.totalHits/12))
-           setHits(data.hits)
-           setShowLoadMore(true)
-           }
-        
-       })
-       
-     
-         .catch(error=>setError(error))
-         .finally(()=>{setStatus(Status.REJECTED)
-         setPrevImgName(imgName)
-        
-        }
-         )
-   
-   
-     
-
-    
-
-    
+    setPage(0) 
+    setStatus(Status.LOADING)
+    setHits(null) 
+    setPrevImgName(imgName)
+    setPage(1)     
     }
-
-    
-
-  
+// eslint-disable-next-line react-hooks/exhaustive-deps
 }, [imgName] )
 
+useEffect(()=>{
+
+if (page>0) {
+    API.FetchImg(imgName, page)
+    .then(data => {
+    
+
+      if (page === 1) {
+        if (data.total>0 && data.total<=12) {
+               setHits(data.hits)
+                setError(null)
+               }
+             
+        if (data.total===0) {
+               setError(true) 
+               setHits(null)
+             }
+
+        if (data.total>12) {
+                   setMaxPage(Math.ceil(data.totalHits/12))
+                   setHits(data.hits)
+                   setShowLoadMore(true)
+                   setError(null)
+                   }
+      
+    
+      } else {setHits([...hits, ...data.hits])} 
+    
+  } 
+    )
+  .finally(()=>{
+    setStatus(Status.REJECTED);
+    setShowLoadMore(true);
+    if (page>=2) {
+      scroll()
+    }
+                          
+  })
+
+}
+
+
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, [page, prevImgName])
+
 
     
   
-  function loadMore () {
+ function loadMore () {
 
    setStatus(Status.LOADING)
-    setPage(page+1)
-    setShowLoadMore(false)
-    
-    console.log(page);
-
-    scroll()
-
-    API.FetchImg(imgName, page+1)
-          .then(data => setHits([...hits, ...data.hits]))
-          .finally(()=>{
-            setStatus(Status.REJECTED);
-            setShowLoadMore(true);
-            scroll()                      
-          })
-      
-      
-          
+   setShowLoadMore(false)
+   setPage(page+1)
+  
    }
   
    const scroll = () => {
